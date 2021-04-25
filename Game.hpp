@@ -4,8 +4,7 @@
 
 #include "SDL2/SDL.h"
 
-//#include "SDL2/SDL_image.h"
-
+using namespace std;
 
 
 class Game
@@ -20,11 +19,11 @@ public:
 
     Game();
 
-    void Run();
+    void Chay_tro_choi();
 
-    int GetScore();
+    int Lay_diem();
 
-    int GetSize();
+    int Lay_kich_co();
 
 
 
@@ -32,23 +31,23 @@ private:
 
 
 
-    bool running = false;
+    bool dang_chay = false;
 
-    bool alive = false;
+    bool con_song = false;
 
-    int fps = 0;
+    int do_tre = 0;
 
 
 
     static const int FRAME_RATE     = 1000 / 60;
 
-    static const int SCREEN_WIDTH   = 640;
+    static const int do_rong_man_hinh   = 640;
 
-    static const int SCREEN_HEIGHT  = 640;
+    static const int do_cao_man_hinh  = 640;
 
-    static const int GRID_WIDTH     = 32;
+    static const int so_o_ngang     = 32;
 
-    static const int GRID_HEIGHT    = 32;
+    static const int so_o_doc    = 32;
 
 
 
@@ -58,57 +57,57 @@ private:
 
 
 
-    enum class Block { head, body, food, empty };
+    enum class Loai_o { head, than, vi_tri_thuc_an, empty };
 
-    enum class Move { up, down, left, right };
-
-
-
-    Move last_dir = Move::up;
-
-    Move dir = Move::up;
+    enum class kieu_di_chuyen { up, down, left, right };
 
 
 
-    struct { float x = GRID_WIDTH / 2, y = GRID_HEIGHT / 2; } pos;
+    kieu_di_chuyen last_dir = kieu_di_chuyen::up;
+
+    kieu_di_chuyen dir = kieu_di_chuyen::up;
 
 
 
-    SDL_Point head = { static_cast<int>(pos.x), static_cast<int>(pos.y) };
-
-    SDL_Point food;
-
-    std::vector<SDL_Point> body;
+    struct { float x = so_o_ngang / 2, y = so_o_doc / 2; } vi_tri_dau;
 
 
 
-    Block grid[GRID_WIDTH][GRID_HEIGHT];
+    SDL_Point head = { static_cast<int>(vi_tri_dau.x), static_cast<int>(vi_tri_dau.y) };
+
+    SDL_Point vi_tri_thuc_an;
+
+    vector<SDL_Point> than;
 
 
 
-    float speed = 0.5f;
-
-    int growing = 0;
-
-    int score = 0;
-
-    int size = 1;
+    Loai_o luoi[so_o_ngang][so_o_doc];
 
 
 
-    void ReplaceFood();
+    float toc_do = 0.5f;
 
-    void GrowBody(int quantity);
+    int tang = 0;
 
-    void UpdateWindowTitle();
+    int diem = 0;
 
-    void GameLoop();
+    int kich_co = 1; // kich co ban dau co 1 o.
+
+
+
+    void Thay_the_thuc_an();
+
+    void Tang_than(int so_luong);
+
+    void Cap_nhat_tieu_de();
+
+    void Vong_lap_game();
 
     void Render();
 
-    void Update();
+    void Cap_nhat();
 
-    void PollEvents();
+    void Xu_li_su_kien();
 
     void Close();
 

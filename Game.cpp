@@ -19,14 +19,14 @@ using namespace std;
 Game::Game()
 
 {
+    // Khoi tao cac o rong.
+    for (int i = 0; i < so_o_ngang; ++i)
 
-    for (int i = 0; i < GRID_WIDTH; ++i)
-
-        for (int j = 0; j < GRID_HEIGHT; ++j)
+        for (int j = 0; j < so_o_doc; ++j)
 
         {
 
-            grid[i][j] = Block::empty;
+            luoi[i][j] = Loai_o::empty;
 
         }
 
@@ -38,17 +38,16 @@ Game::Game()
 
 
 
-void Game::Run()
+void Game::Chay_tro_choi()
 
 {
 
-    // Initialize SDL
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
 
     {
 
-        cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << endl;
+        cerr << "Khong the khoi tao: loi " << SDL_GetError() << endl;
 
         exit(EXIT_FAILURE);
 
@@ -56,11 +55,10 @@ void Game::Run()
 
 
 
-    // Create Window
 
-    window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    window = SDL_CreateWindow("Ran San Moi", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 
-        SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        do_rong_man_hinh, do_cao_man_hinh, SDL_WINDOW_SHOWN);
 
 
 
@@ -68,7 +66,7 @@ void Game::Run()
 
     {
 
-        cout << "Window could not be created! SDL_Error: " << SDL_GetError() << endl;
+        cout << "Khong the khoi tao window: " << SDL_GetError() << endl;
 
         exit(EXIT_FAILURE);
 
@@ -76,7 +74,6 @@ void Game::Run()
 
 
 
-    // Create renderer
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
@@ -84,7 +81,7 @@ void Game::Run()
 
     {
 
-        cout << "Renderer could not be created! SDL_Error: " << SDL_GetError() << endl;
+        cout << "Loi hien thi: " << SDL_GetError() << endl;
 
         exit(EXIT_FAILURE);
 
@@ -92,43 +89,48 @@ void Game::Run()
 
 
 
-    alive = true;
+    con_song = true;
 
-    running = true;
+    dang_chay = true;
 
-    ReplaceFood();
+    Thay_the_thuc_an();
 
-    GameLoop();
+    Vong_lap_game();
 
 }
 
 
 
-void Game::ReplaceFood()
+void Game::Thay_the_thuc_an()
 
 {
+    // Toa do cua o do an.
 
     int x, y;
+
+    // Tim kiem cac o trong luoi, neu tim duoc o trong thi dat do an vao.
 
     while (true)
 
     {
+        // Khoi tao toa do ngau nhien.
 
-        x = rand() % GRID_WIDTH;
+        x = rand() % so_o_ngang;
 
-        y = rand() % GRID_HEIGHT;
+        y = rand() % so_o_doc;
 
 
+        // Neu dat thanh cong thi thoat ra khoi vong lap while.
 
-        if (grid[x][y] == Block::empty)
+        if (luoi[x][y] == Loai_o::empty)
 
         {
 
-            grid[x][y] = Block::food;
+            luoi[x][y] = Loai_o::vi_tri_thuc_an;
 
-            food.x = x;
+            vi_tri_thuc_an.x = x;
 
-            food.y = y;
+            vi_tri_thuc_an.y = y;
 
             break;
 
@@ -140,61 +142,60 @@ void Game::ReplaceFood()
 
 
 
-void Game::GameLoop()
+void Game::Vong_lap_game()
 
 {
 
-    Uint32 before, second = SDL_GetTicks(), after;
+    Uint32 truoc, so_giay = SDL_GetTicks(), sau;
 
-    int frame_time, frames = 0;
+    int khung_thoi_gian, khung_hinh = 0;
 
 
 
-    while (running)
+    while (dang_chay)
 
     {
 
-        before = SDL_GetTicks();
+        truoc = SDL_GetTicks();
 
 
 
-        PollEvents();
+        Xu_li_su_kien();
 
-        Update();
+        Cap_nhat();
 
         Render();
 
 
+        khung_hinh++;
 
-        frames++;
+        sau = SDL_GetTicks();
 
-        after = SDL_GetTicks();
-
-        frame_time = after - before;
-
+        khung_thoi_gian = sau - truoc;
 
 
-        if (after - second >= 1000)
+
+        if (sau - so_giay >= 1000)
 
         {
 
-            fps = frames;
+            do_tre = khung_hinh;
 
-            frames = 0;
+            khung_hinh = 0;
 
-            second = after;
+            so_giay = sau;
 
-            UpdateWindowTitle();
+            Cap_nhat_tieu_de();
 
         }
 
 
 
-        if (FRAME_RATE > frame_time)
+        if (FRAME_RATE > khung_thoi_gian)
 
         {
 
-            SDL_Delay(FRAME_RATE - frame_time);
+            SDL_Delay(FRAME_RATE - khung_thoi_gian);
 
         }
 
@@ -206,7 +207,7 @@ void Game::GameLoop()
 
 
 
-void Game::PollEvents()
+void Game::Xu_li_su_kien()
 
 {
 
@@ -220,7 +221,7 @@ void Game::PollEvents()
 
         {
 
-            running = false;
+            dang_chay = false;
 
         }
 
@@ -234,9 +235,9 @@ void Game::PollEvents()
 
                 case SDLK_UP:
 
-                    if (last_dir != Move::down || size == 1)
+                    if (last_dir != kieu_di_chuyen::down || kich_co == 1)
 
-                        dir = Move::up;
+                        dir = kieu_di_chuyen::up;
 
                     break;
 
@@ -244,9 +245,9 @@ void Game::PollEvents()
 
                 case SDLK_DOWN:
 
-                    if (last_dir != Move::up || size == 1)
+                    if (last_dir != kieu_di_chuyen::up || kich_co == 1)
 
-                        dir = Move::down;
+                        dir = kieu_di_chuyen::down;
 
                     break;
 
@@ -254,9 +255,9 @@ void Game::PollEvents()
 
                 case SDLK_LEFT:
 
-                    if (last_dir != Move::right || size == 1)
+                    if (last_dir != kieu_di_chuyen::right || kich_co == 1)
 
-                        dir = Move::left;
+                        dir = kieu_di_chuyen::left;
 
                     break;
 
@@ -264,9 +265,9 @@ void Game::PollEvents()
 
                 case SDLK_RIGHT:
 
-                    if (last_dir != Move::left || size == 1)
+                    if (last_dir != kieu_di_chuyen::left || kich_co == 1)
 
-                        dir = Move::right;
+                        dir = kieu_di_chuyen::right;
 
                     break;
 
@@ -280,31 +281,31 @@ void Game::PollEvents()
 
 
 
-int Game::GetSize()
+int Game::Lay_kich_co()
 
 {
 
-    return size;
+    return kich_co;
 
 }
 
 
 
-void Game::GrowBody(int quantity)
+void Game::Tang_than(int so_luong)
 
 {
 
-    growing += quantity;
+    tang += so_luong;
 
 }
 
 
 
-void Game::Update()
+void Game::Cap_nhat()
 
 {
 
-    if (!alive)
+    if (!con_song)
 
         return;
 
@@ -314,41 +315,41 @@ void Game::Update()
 
     {
 
-        case Move::up:
+        case kieu_di_chuyen::up:
 
-            pos.y -= speed;
+            vi_tri_dau.y -= toc_do;
 
-            pos.x = floorf(pos.x);
-
-            break;
-
-
-
-        case Move::down:
-
-            pos.y += speed;
-
-            pos.x = floorf(pos.x);
+            vi_tri_dau.x = floorf(vi_tri_dau.x);
 
             break;
 
 
 
-        case Move::left:
+        case kieu_di_chuyen::down:
 
-            pos.x -= speed;
+            vi_tri_dau.y += toc_do;
 
-            pos.y = floorf(pos.y);
+            vi_tri_dau.x = floorf(vi_tri_dau.x);
 
             break;
 
 
 
-        case Move::right:
+        case kieu_di_chuyen::left:
 
-            pos.x += speed;
+            vi_tri_dau.x -= toc_do;
 
-            pos.y = floorf(pos.y);
+            vi_tri_dau.y = floorf(vi_tri_dau.y);
+
+            break;
+
+
+
+        case kieu_di_chuyen::right:
+
+            vi_tri_dau.x += toc_do;
+
+            vi_tri_dau.y = floorf(vi_tri_dau.y);
 
             break;
 
@@ -356,27 +357,25 @@ void Game::Update()
 
 
 
-    // Wrap
 
-    if (pos.x < 0) pos.x = GRID_WIDTH - 1;
+    if (vi_tri_dau.x < 0) vi_tri_dau.x = so_o_ngang - 1;
 
-    else if (pos.x > GRID_WIDTH - 1) pos.x = 0;
-
-
-
-    if (pos.y < 0) pos.y = GRID_HEIGHT - 1;
-
-    else if (pos.y > GRID_HEIGHT - 1) pos.y = 0;
+    else if (vi_tri_dau.x > so_o_ngang - 1) vi_tri_dau.x = 0;
 
 
 
-    int new_x = static_cast<int>(pos.x);
+    if (vi_tri_dau.y < 0) vi_tri_dau.y = so_o_doc - 1;
 
-    int new_y = static_cast<int>(pos.y);
+    else if (vi_tri_dau.y > so_o_doc - 1) vi_tri_dau.y = 0;
 
 
 
-    // Check if head position has changed
+    int new_x = static_cast<int>(vi_tri_dau.x);
+
+    int new_y = static_cast<int>(vi_tri_dau.y);
+
+
+
 
     if (new_x != head.x || new_y != head.y)
 
@@ -386,19 +385,18 @@ void Game::Update()
 
 
 
-        // If we are growing, just make a new neck
 
-        if (growing > 0)
+        if (tang > 0)
 
         {
 
-            size++;
+            kich_co++;
 
-            body.push_back(head);
+            than.push_back(head);
 
-            growing--;
+            tang--;
 
-            grid[head.x][head.y] = Block::body;
+            luoi[head.x][head.y] = Loai_o::than;
 
         }
 
@@ -406,25 +404,25 @@ void Game::Update()
 
         {
 
-            // We need to shift the body
 
-            SDL_Point free = head;
+			// Tham khao tren mang.
+            SDL_Point cot_chay = head;
 
-            vector<SDL_Point>::reverse_iterator rit = body.rbegin();
+            vector<SDL_Point>::reverse_iterator rit = than.rbegin();
 
-            for ( ; rit != body.rend(); ++rit)
+            for ( ; rit != than.rend(); ++rit)
 
             {
 
-                grid[free.x][free.y] = Block::body;
+                luoi[cot_chay.x][cot_chay.y] = Loai_o::than;
 
-                swap(*rit, free);
+                swap(*rit, cot_chay);
 
             }
 
 
 
-            grid[free.x][free.y] = Block::empty;
+            luoi[cot_chay.x][cot_chay.y] = Loai_o::empty;
 
         }
 
@@ -440,57 +438,55 @@ void Game::Update()
 
 
 
-    Block & next = grid[head.x][head.y];
+    Loai_o & next = luoi[head.x][head.y];
 
-    // Check if there's food over here
 
-    if (next == Block::food)
-
-    {
-
-        score++;
-
-        ReplaceFood();
-
-        GrowBody(1);
-
-    }
-
-    // Check if we're dead
-
-    else if (next == Block::body)
+    if (next == Loai_o::vi_tri_thuc_an)
 
     {
 
-        alive = false;
+        diem++;
+
+        Thay_the_thuc_an();
+
+        Tang_than(1);
 
     }
 
 
+    else if (next == Loai_o::than)
 
-    next = Block::head;
+    {
+
+        con_song = false;
+
+    }
+
+
+
+    next = Loai_o::head;
 
 }
 
 
 
-int Game::GetScore()
+int Game::Lay_diem()
 
 {
 
-    return score;
+    return diem;
 
 }
 
 
 
-void Game::UpdateWindowTitle()
+void Game::Cap_nhat_tieu_de()
 
 {
 
-    string title = "Snakle++ Score: " + to_string(score) + " FPS: " + to_string(fps);
+    string tieu_de_window = "Diem: " + to_string(diem);
 
-    SDL_SetWindowTitle(window, title.c_str());
+    SDL_SetWindowTitle(window, tieu_de_window.c_str());
 
 }
 
@@ -500,67 +496,73 @@ void Game::Render()
 
 {
 
-    SDL_Rect block;
+    SDL_Rect khoi_o;
 
-    block.w = SCREEN_WIDTH / GRID_WIDTH;
+    khoi_o.w = do_rong_man_hinh / so_o_ngang;
 
-    block.h = SCREEN_WIDTH / GRID_HEIGHT;
+    khoi_o.h = do_rong_man_hinh / so_o_doc;
 
 
 
-    // Clear screen
 
-    SDL_SetRenderDrawColor(renderer, 0x1E, 0x1E, 0x1E, 0xFF);
+	// Mau nen.
+    SDL_SetRenderDrawColor(renderer, 68, 102, 92, 40);
 
     SDL_RenderClear(renderer);
 
 
 
-    // Render food
 
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xCC, 0x00, 0xFF);
+	// Mau o thuc an.
+    SDL_SetRenderDrawColor(renderer, 245, 110, 41, 96);
 
-    block.x = food.x * block.w;
+    khoi_o.x = vi_tri_thuc_an.x * khoi_o.w;
 
-    block.y = food.y * block.h;
+    khoi_o.y = vi_tri_thuc_an.y * khoi_o.h;
 
-    SDL_RenderFillRect(renderer, &block);
+    SDL_RenderFillRect(renderer, &khoi_o);
 
 
 
-    // Render snake's body
 
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	// Mau cua than.
+    SDL_SetRenderDrawColor(renderer, 89, 255, 245, 100);
 
-    for (SDL_Point & point : body)
+    for (SDL_Point & point : than)
 
     {
 
-        block.x = point.x * block.w;
+        khoi_o.x = point.x * khoi_o.w;
 
-        block.y = point.y * block.h;
+        khoi_o.y = point.y * khoi_o.h;
 
-        SDL_RenderFillRect(renderer, &block);
+        SDL_RenderFillRect(renderer, &khoi_o);
 
     }
 
 
 
-    // Render snake's head
 
-    block.x = head.x * block.w;
+    khoi_o.x = head.x * khoi_o.w;
 
-    block.y = head.y * block.h;
+    khoi_o.y = head.y * khoi_o.h;
 
-    if (alive) SDL_SetRenderDrawColor(renderer, 0x00, 0x7A, 0xCC, 0xFF);
+	if (con_song)
+	{
+		// Mau cua dau.
+		SDL_SetRenderDrawColor(renderer, 74, 255, 80, 100);
+	}
+	else
+	{
+		// Mau cua o bi dam.
+		SDL_SetRenderDrawColor(renderer, 124, 98, 133, 52);
+	}
+	
 
-    else       SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-
-    SDL_RenderFillRect(renderer, &block);
+    SDL_RenderFillRect(renderer, &khoi_o);
 
 
 
-    // Update Screen
 
     SDL_RenderPresent(renderer);
 
